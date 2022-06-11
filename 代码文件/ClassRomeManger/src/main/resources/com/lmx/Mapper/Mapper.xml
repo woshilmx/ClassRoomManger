@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.lmx.Mapper.Mapper">
+    <insert id="IsertRequest">
+        insert  into request VALUE(#{id} ,#{thing},#{datetime},#{startrequest},
+            #{endrequest},#{cid},#{sid},#{tsid},#{status},null);
+    </insert>
+    <insert id="InsertCourse">
+        insert into course values (#{id} ,#{cname},#{starttime},#{endtime},#{datetime},#{cid});
+    </insert>
+    <insert id="InsertRequest">
+        insert into request(id,thing,datetime,startrequest,endrequest,cid,sid,tsid,status,mid)
+        values (#{id},#{thing},#{datetime},#{startrequest},#{endrequest},#{cid},#{sid},#{tsid}
+        ,#{status},#{mid});
+    </insert>
+    <insert id="InsertTeaCou">
+        insert  into teacou values (#{tsid},#{coid});
+    </insert>
+    <update id="UpdateEquipment">
+        update equipment set STATU=#{STATU},decription=#{decription} where equipment.name=#{name} AND equipment.cid IN
+                                                                                   (SELECT id FROM croom WHERE foolnumber=#{foolnumber} AND roomnumber = #{roomnumber});
+        </update>
+    <update id="UpdateEquipmentGood">
+        UPDATE equipment SET STATU=0,decription=NULL WHERE id=#{id};
+    </update>
+    <update id="UpdateTracherRqquestTeacher">
+        UPDATE request SET `status`=#{status} WHERE id =#{id};
+    </update>
+    <update id="UpdateTracherRqquestStudent">
+        UPDATE request SET `status`=#{status},mid=#{mid} WHERE id =#{id};
+    </update>
+    <delete id="DelectRequest">
+        DELETE from request where id=#{id};
+    </delete>
+    <delete id="DelectRequestmoretime" statementType="CALLABLE">
+        {CALL deletemoretime(#{datetime,mode=IN,jdbcType=DATE},#{endrequest,mode=IN,jdbcType=TIME})}
+    </delete>
+    <delete id="DelectRequestLog">
+        delete from requestlog where id=#{id};
+    </delete>
+    <select id="SelectStudent" resultType="java.lang.String">
+        select studentid from student where studentid=#{studentid} and password=#{password};
+    </select>
+    <select id="SelectTeacher" resultType="java.lang.String">
+        select worknumber from teacher where worknumber=#{worknumber} and tpassword=#{tpassword};
+    </select>
+    <select id="SelectManger" resultType="java.lang.String">
+        select id from manger where username=#{username} and mpassword=#{mpassword};
+    </select>
+    <select id="SelectSparetime" resultType="com.lmx.Pojo.Croom">
+        SELECT DISTINCT id,foolnumber, roomnumber,maxperson FROM crcou
+        WHERE !(datetime=#{datetime} AND (starttime>=#{starttime} AND !(endtime>#{endtime}))) or courid IS NULL ;
+
+    </select>
+    <select id="SelectCroommumber" resultType="java.lang.String">
+        select  id from croom where roomnumber=#{roomnumber} and foolnumber=#{foolnumber}
+    </select>
+    <select id="SelectRequest" resultType="com.lmx.Pojo.Request">
+
+        SELECT s.id,foolnumber,roomnumber,thing,datetime,startrequest,endrequest,status FROM croom JOIN (SELECT * from request WHERE sid = #{sid}) s ON s.cid=croom.id;
+
+    </select>
+    <select id="SelectEquipment" resultType="com.lmx.Pojo.Equipment">
+        SELECT equipment.id,`name`,number,cid,STATU,decription FROM equipment JOIN (SELECT id FROM croom WHERE foolnumber=#{foolnumber} and roomnumber=#{roomnumber}) s ON equipment.cid=s.id;
+
+
+    </select>
+    <select id="SelectRequestTeacher" resultType="com.lmx.Pojo.Request">
+        SELECT s.id, foolnumber,roomnumber,thing,datetime,startrequest,endrequest,status FROM croom JOIN (SELECT * from request WHERE tsid = #{tsid}) s ON s.cid=croom.id;
+
+    </select>
+    <select id="SelectRequsrtToManger" resultType="com.lmx.Pojo.Request">
+        SELECT distinct  request.id,foolnumber,roomnumber,thing,request.datetime,request.startrequest,status,request.endrequest,studentid,`name`,sdept from  croom,request,student,teacher WHERE request.`status`=1 and request.cid=croom.id and request.sid=student.studentid;
+
+
+    </select>
+    <select id="SelectRequestTeacherTomanger" resultType="com.lmx.Pojo.Request">
+        SELECT DISTINCT request.id,foolnumber,roomnumber,thing,request.datetime,request.startrequest,status,request.endrequest,tname,worknumber,tdept from  croom,request,student,teacher WHERE request.`status`=1 and request.cid=croom.id and request.tsid=teacher.worknumber;
+
+    </select>
+    <select id="SelectEquipmentBad" resultType="com.lmx.Pojo.Equipment">
+        SELECT DISTINCT equipment.id,`name`,number,STATU,decription,foolnumber,roomnumber FROM equipment,croom WHERE STATU=1 AND equipment.cid=croom.id ;
+
+    </select>
+    <select id="SelectrequestMananger" resultType="com.lmx.Pojo.Request">
+        SELECT  request.id,foolnumber,roomnumber,thing,datetime,startrequest,endrequest,status,sid,student.name,studentid,sdept FROM request,manger,croom,student WHERE request.mid=#{id} AND request.cid=croom.id and request.sid=student.studentid;  </select>
+    <select id="SelectrequestMangerTeacher" resultType="com.lmx.Pojo.Request">
+        SELECT request.id,foolnumber,roomnumber,thing,datetime,startrequest,endrequest,status,tsid,tname,worknumber,tdept FROM request,manger,croom,teacher WHERE request.mid=#{id} AND request.cid=croom.id and request.tsid=teacher.worknumber;
+    </select>
+    <select id="SelectRequestKong" resultType="com.lmx.Pojo.Croom">
+        SELECT distinct foolnumber, roomnumber,maxperson FROM crew WHERE !(datetime=#{datetime} AND (startrequest>=#{startrequest} AND !(endrequest>#{endrequest}))) and status=2 or id IS NULL ;
+    </select>
+    <select id="SelectCroom" resultType="java.lang.String">
+        select distinct foolnumber from croom;
+    </select>
+    <select id="SelectCoomroom" resultType="java.lang.String">
+        select distinct roomnumber from croom where foolnumber=#{foolnumber};
+    </select>
+    <select id="SelectRequestCourse" resultType="com.lmx.Pojo.Croom">
+
+        SELECT DISTINCT foolnumber,roomnumber,maxperson FROM croom LEFT JOIN request ON request.cid=croom.id WHERE datetime=#{datetime} AND (startrequest>=#{startrequest} AND !(endrequest>#{endrequest})) and request.status=2  and foolnumber=#{foolnumber} and roomnumber=#{roomnumber} ;
+
+    </select>
+    <select id="SelectCoursrGuDing" resultType="com.lmx.Pojo.Croom">
+    select * from croom where id in  (select distinct cid from course where datetime=#{datetime} and starttime>=#{starttime} AND !(endtime>#{endtime}) and foolnumber=#{foolnumber} and roomnumber=#{roomnumber});
+    </select>
+    <select id="Selectrequestlog" resultType="com.lmx.Pojo.RequestLog">
+        select requestlog.id,foolnumber,roomnumber,thing,datetime,startrequest,endrequest,status,tsid,cid,sid from requestlog,croom where sid=#{sid} and croom.id=requestlog.cid;
+    </select>
+    <select id="SelectrequestlogTeacher" resultType="com.lmx.Pojo.RequestLog">
+
+        select requestlog.id,foolnumber,roomnumber,thing,datetime,startrequest,endrequest,status,tsid,cid,sid from requestlog,croom where tsid=#{tsid} and croom.id=requestlog.cid;
+    </select>
+
+
+</mapper>
